@@ -1,37 +1,42 @@
-# x <- c("ggmap", "rgdal", "rgeos", "maptools", "dplyr", "tidyr", "tmap","dplyr","plyr")
-# lapply(x, library,character.only=TRUE)
+
 library(rgeos)
 library(rgdal)
 library(ggmap)
 library(maptools)
+library(plyr)
+library(RColorBrewer)
 
-Students_Primary<-read.csv("StudentsP.csv")
-Students_Secondary<-read.csv("StudentsS.csv")
 
 ind<-readOGR("/home/vamsi/Documents/IBMproject/IND","IND_adm1")
 
 
-StudentTest<-Students_Primary[Students_Primary$Gender=="Total",]
-StudentTest<-StudentTest[StudentTest$School.Type=="Primary School",]
-StudentTest<-StudentTest[2:nrow(StudentTest),]
-StudentTest$ID_1<-1:nrow(StudentTest)
-StudentTest$ID_1<-StudentTest$ID_1+1286
+Gender<-"Boy"
+Type<-"Primary School"
+Year<-"X2009"
+
+Map<-function(Gender,Type,Year){
+  
+StudentsM<-Students[Students$Gender==Gender,]
+
+StudentsM<-StudentsM[StudentsM$School.Type==Type,]
+#Student<-StudentTest[2:nrow(StudentTest),]
+StudentsM$id<-1:nrow(StudentsM)
+StudentsM$id<-StudentsM$id+1286
+print("3")
 
 indup<-ind
 
-indup.df<-fortify(indup2,region = "ID_1")
-StudentTest$id<-StudentTest$ID_1
-indup.df1<-join(indup.df,StudentTest)
+indup.df<-fortify(indup,region = "ID_1")
+indup.df1<-join(indup.df,StudentsM,by="id")
+print("4")
 
 ggplot(indup.df1) +
-aes(long,lat,group=group,fill=X2009 +
+aes(long,lat,group=group,fill=get(names(indup.df1)[names(indup.df1)==Year]))+
+ggtitle(paste0( "Map Plot:","\n", "Gender=",Gender,"       ","Type=",Type))+
 geom_polygon() +
-geom_path(color="black") +
+scale_fill_gradient(trans="reverse" ,guide_legend(Year))+
+geom_path(color="grey") +
 coord_equal()
 
-
-# indup@data<-left_join(indup@data,StudentTest)
-# library(tmap)
-# qtm(indup,"X2001")
-# qtm(indup,"X2001")
+}
 
